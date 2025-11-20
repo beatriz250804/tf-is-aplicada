@@ -1,0 +1,13 @@
+entity Cliente {
+  nombre String required,
+  email String
+}
+
+entity Producto {
+  nombre String required,
+  precio Integer required
+}
+
+relationship ManyToOne {
+  Producto{cliente(nombre)} to Cliente
+}
