@@ -26,6 +26,9 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2
           restore-keys: ${{ runner.os }}-m2
+      
+      - name: Dar permisos a mvnw
+        run: chmod +x backend/mvnw
 
       - name: Compilar y ejecutar tests
         run: |
