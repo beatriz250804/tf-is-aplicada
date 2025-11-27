@@ -1,0 +1,15 @@
+# Build frontend
+FROM node:20 AS frontend-build
+WORKDIR /app/frontend
+COPY frontend-ionic/ ./frontend-ionic/
+WORKDIR /app/frontend/frontend-ionic
+RUN npm ci
+# Ajuste de build: ionic puede generar /www o /dist, se asume /www por Ionic default
+RUN npm run build -- --prod || npm run build
+
+# Final: servir con nginx
+FROM nginx:alpine
+# Ajusta la ruta de salida si tu build genera dist/<name> en lugar de www
+COPY --from=frontend-build /app/frontend/frontend-ionic/www /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx","-g","daemon off;"]
