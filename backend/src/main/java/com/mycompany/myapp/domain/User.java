@@ -105,7 +105,7 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
         return login;
     }
 
-    // Lowercase the login before saving it in database
+    // antes de guardar el login, lo pasa a minusculas
     public void setLogin(String login) {
         this.login = StringUtils.lowerCase(login, Locale.ENGLISH);
     }

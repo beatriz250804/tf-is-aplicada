@@ -1,32 +1,31 @@
-describe.skip('Eliminar Cliente', () => {
-  it('debería eliminar un cliente existente', () => {
+describe('Eliminar Cliente', () => {
+  it('debería eliminar un cliente', () => {
 
-    // 1. Login
+    // entrar a la pantalla de login
     cy.visit('/login');
+
+    // escribir el usuario y la contraseña
     cy.get('input[name="username"]').type('admin');
     cy.get('input[name="password"]').type('admin');
     cy.get('button[type="submit"]').click();
 
-    // 2. Ir a Entidades → Cliente
+    // entrar al menu de entidades
     cy.contains('Entidades').click({ force: true });
+    //entrar al menu de cliente
     cy.contains('Cliente').click({ force: true });
 
-    const nombre = 'Cliente Postman Test';
+    // buscamos el cliente que se llame así
+    cy.contains('table tr', 'Cliente Cypress') // ← Fila donde está el cliente
+      .find('button.btn-danger')               // ← Botón rojo "Eliminar"
+      .click({ force: true });
 
-    // 3. Buscar la fila del cliente según el nombre
-    cy.contains('td', nombre)
-      .parent('tr')
-      .within(() => {
-        cy.get('.btn-danger').click({ force: true });
-      });
+    // confirmar que queremos eliminarlo
+    cy.get('.modal-footer').contains('Eliminar').click({ force: true });
 
-    // 4. Confirmar en el popup
-    cy.contains('Eliminar').click({ force: true });
+    // esperar a que se borre
+    cy.get('.modal').should('not.exist');
 
-    // 5. Esperar recarga de tabla
-    cy.wait(1000);
-
-    // 6. Verificar que YA NO existe
-    cy.contains(nombre).should('not.exist');
+    // comprobamos que ya no existe ese cliente
+    cy.contains('table', 'Cliente Cypress').should('not.exist');
   });
 });

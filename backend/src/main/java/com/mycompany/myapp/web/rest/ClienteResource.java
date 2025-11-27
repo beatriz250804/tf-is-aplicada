@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
-
-
 /**
  * REST controller for managing {@link com.mycompany.myapp.domain.Cliente}.
  */
@@ -52,8 +50,6 @@ public class ClienteResource {
     @PostMapping("")
     public ResponseEntity<Cliente> createCliente(@Valid @RequestBody Cliente cliente) throws URISyntaxException {
         LOG.debug("REST request to save Cliente : {}", cliente);
-        LOG.info("Petición para crear un nuevo cliente con nombre: {}", cliente.getNombre());
-
         if (cliente.getId() != null) {
             throw new BadRequestAlertException("A new cliente cannot already have an ID", ENTITY_NAME, "idexists");
         }

@@ -74,6 +74,7 @@ public class UserResource {
             "lastModifiedDate"
         )
     );
+    private final Logger log = LoggerFactory.getLogger(UserResource.class);
 
     private static final Logger LOG = LoggerFactory.getLogger(UserResource.class);
 
@@ -205,4 +206,11 @@ public class UserResource {
         userService.deleteUser(login);
         return ResponseEntity.noContent().headers(HeaderUtil.createAlert(applicationName, "userManagement.deleted", login)).build();
     }
+
+    @GetMapping("/test-log")
+    public String testLog() {
+        log.info("ESTE ES UN LOG DE PRUEBA PARA ELK");
+        return "OK";
+    }
+
 }

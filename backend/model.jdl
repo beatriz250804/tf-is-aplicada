@@ -1,5 +1,5 @@
 entity Cliente {
-  nombre String required,
+  nombre String required, 
   email String
 }
 

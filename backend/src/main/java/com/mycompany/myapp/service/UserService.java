@@ -31,6 +31,7 @@ import tech.jhipster.security.RandomUtil;
 @Transactional
 public class UserService {
 
+    //para poder imprimir los mensajes (logs) en la consola
     private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
@@ -39,6 +40,7 @@ public class UserService {
 
     private final AuthorityRepository authorityRepository;
 
+    //guardar info en la memoria y que vaya más rapido
     private final CacheManager cacheManager;
 
     public UserService(
@@ -53,6 +55,8 @@ public class UserService {
         this.cacheManager = cacheManager;
     }
 
+    //cuando un usuario se registra se le da una llave y si es correcta
+    //se activa su cuenta
     public Optional<User> activateRegistration(String key) {
         LOG.debug("Activating user for activation key {}", key);
         return userRepository
@@ -71,6 +75,7 @@ public class UserService {
         LOG.debug("Reset user password for reset key {}", key);
         return userRepository
             .findOneByResetKey(key)
+            //la llave vale solo durante un dia (para cambiar la contraseña)
             .filter(user -> user.getResetDate().isAfter(Instant.now().minus(1, ChronoUnit.DAYS)))
             .map(user -> {
                 user.setPassword(passwordEncoder.encode(newPassword));
@@ -81,6 +86,7 @@ public class UserService {
             });
     }
 
+    //para solicitar el cambio de contraseña
     public Optional<User> requestPasswordReset(String mail) {
         return userRepository
             .findOneByEmailIgnoreCase(mail)
@@ -93,12 +99,15 @@ public class UserService {
             });
     }
 
+    //registra un nuevo usuario
     public User registerUser(AdminUserDTO userDTO, String password) {
         userRepository
+            //revisamos si ya existe el usuaario
             .findOneByLogin(userDTO.getLogin().toLowerCase())
             .ifPresent(existingUser -> {
                 boolean removed = removeNonActivatedUser(existingUser);
                 if (!removed) {
+                    //lanza el error de que ya existe
                     throw new UsernameAlreadyUsedException();
                 }
             });
@@ -180,12 +189,7 @@ public class UserService {
         return user;
     }
 
-    /**
-     * Update all information for a specific user, and return the modified user.
-     *
-     * @param userDTO user to update.
-     * @return updated user.
-     */
+    
     public Optional<AdminUserDTO> updateUser(AdminUserDTO userDTO) {
         return Optional.of(userRepository.findById(userDTO.getId()))
             .filter(Optional::isPresent)
@@ -228,15 +232,7 @@ public class UserService {
             });
     }
 
-    /**
-     * Update basic information (first name, last name, email, language) for the current user.
-     *
-     * @param firstName first name of user.
-     * @param lastName  last name of user.
-     * @param email     email id of user.
-     * @param langKey   language key.
-     * @param imageUrl  image URL of user.
-     */
+   // el usuario puede cambiar su propia información
     public void updateUser(String firstName, String lastName, String email, String langKey, String imageUrl) {
         SecurityUtils.getCurrentUserLogin()
             .flatMap(userRepository::findOneByLogin)
@@ -255,11 +251,13 @@ public class UserService {
     }
 
     @Transactional
+    //primero comprueba si se sabe la contraseña y luego la cambia
     public void changePassword(String currentClearTextPassword, String newPassword) {
         SecurityUtils.getCurrentUserLogin()
             .flatMap(userRepository::findOneByLogin)
             .ifPresent(user -> {
                 String currentEncryptedPassword = user.getPassword();
+                //dará error si la contraseña actual es incorrecta
                 if (!passwordEncoder.matches(currentClearTextPassword, currentEncryptedPassword)) {
                     throw new InvalidPasswordException();
                 }
@@ -290,11 +288,7 @@ public class UserService {
         return SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneWithAuthoritiesByLogin);
     }
 
-    /**
-     * Not activated users should be automatically deleted after 3 days.
-     * <p>
-     * This is scheduled to get fired every day, at 01:00 (am).
-     */
+    //borra los usuarios que llevan inactivos 3 dias
     @Scheduled(cron = "0 0 1 * * ?")
     public void removeNotActivatedUsers() {
         userRepository
@@ -306,15 +300,13 @@ public class UserService {
             });
     }
 
-    /**
-     * Gets a list of all the authorities.
-     * @return a list of all the authorities.
-     */
+   
     @Transactional(readOnly = true)
     public List<String> getAuthorities() {
         return authorityRepository.findAll().stream().map(Authority::getName).toList();
     }
 
+    //borrar la informacion del usuario de la memoria rápida
     private void clearUserCaches(User user) {
         Objects.requireNonNull(cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE)).evictIfPresent(user.getLogin());
         if (user.getEmail() != null) {
